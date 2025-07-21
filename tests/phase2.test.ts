@@ -65,12 +65,7 @@ describe('Phase 2: Event Storage Endpoint', () => {
     expect(error.error).toBeDefined();
   });
 
-  test.skip('stores valid event with authentication', async () => {
-    // Skip if no valid API key is provided
-    if (TEST_API_KEY === 'test-key') {
-      console.log('Skipping: No valid API key provided. Set TEST_API_KEY environment variable.');
-      return;
-    }
+  test('stores valid event with authentication', async () => {
     
     const envelope = createValidEnvelope();
     
@@ -92,11 +87,7 @@ describe('Phase 2: Event Storage Endpoint', () => {
     });
   });
 
-  test.skip('stores multiple events in single request', async () => {
-    // Skip if no valid API key is provided
-    if (TEST_API_KEY === 'test-key') {
-      return;
-    }
+  test('stores multiple events in single request', async () => {
     
     const events = [
       createViewEvent(),
@@ -140,10 +131,9 @@ describe('Phase 2: Event Storage Endpoint', () => {
       body: JSON.stringify(envelope),
     });
     
-    // For now, expect 401 since auth fails before validation
-    expect([400, 401]).toContain(res.status);
+    expect(res.status).toBe(400);
     const error = await res.json() as any;
-    expect(error.error).toBeDefined();
+    expect(error.error || error.valid === false).toBeTruthy();
   });
 
   test('storage endpoint appears in OpenAPI spec', async () => {

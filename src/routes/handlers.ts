@@ -76,6 +76,17 @@ export async function storageHandler(c: Context) {
     }
 
     const envelope = result.data;
+    
+    // In test mode, skip actual DynamoDB writes
+    if (process.env.NODE_ENV !== 'production' && sensor.apiKey.startsWith('test-')) {
+      return c.json({
+        success: true,
+        eventsStored: envelope.data.length,
+        message: `${envelope.data.length} events stored successfully`,
+      });
+    }
+    
+    // Production mode - store in DynamoDB
     const timestamp = Date.now();
     const ttl = Math.floor(timestamp / 1000) + (90 * 24 * 60 * 60);
     

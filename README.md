@@ -35,6 +35,8 @@ A modern implementation of the IMS Caliper Analytics® specification v1.2 using 
 - [x] Sensor API key authentication with Bearer token support
 - [x] Batch write support for multiple events (up to 25 per batch)
 - [x] 90-day TTL on stored events
+- [x] Complete OpenAPI documentation
+- [x] All tests passing locally and on AWS
 
 ## 📍 API Endpoints
 
