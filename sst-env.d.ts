@@ -10,6 +10,14 @@ declare module "sst" {
       "type": "sst.aws.Function"
       "url": string
     }
+    "CaliperEvents": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "CaliperSensors": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
   }
 }
 /// <reference path="sst-env.d.ts" />

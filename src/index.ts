@@ -1,42 +1,50 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { apiReference } from '@scalar/hono-api-reference';
-import { z } from 'zod';
+import { authMiddleware } from './lib/auth';
+import { healthRoute, validationRoute, storageRoute } from './routes/routes';
+import { healthHandler, validationHandler, storageHandler } from './routes/handlers';
 
-// Create the OpenAPI Hono app
-const app = new OpenAPIHono();
-
-// Health check endpoint
-app.openapi(
-  {
-    method: 'get',
-    path: '/health',
-    tags: ['System'],
-    summary: 'Health check endpoint',
-    description: 'Returns the health status of the API',
-    responses: {
-      200: {
-        description: 'API is healthy',
-        content: {
-          'application/json': {
-            schema: z.object({
-              status: z.literal('ok'),
-              timestamp: z.string().datetime(),
-            }),
-          },
-        },
-      },
-    },
+// Create the main OpenAPI Hono app with custom error handling
+const app = new OpenAPIHono({
+  defaultHook: (result, c) => {
+    if (!result.success) {
+      // Return our custom error format for validation errors
+      const errors = result.error.issues.map((issue: any) => ({
+        path: issue.path,
+        message: issue.message,
+        code: issue.code,
+      }));
+      
+      return c.json({
+        valid: false,
+        errors,
+      }, 400);
+    }
   },
-  (c) => {
-    return c.json({
-      status: 'ok' as const,
-      timestamp: new Date().toISOString(),
-    });
-  }
-);
+});
 
-// OpenAPI documentation endpoint
-app.doc('/openapi.json', {
+// Register security schemes
+(app as any).openAPIRegistry.registerComponent('securitySchemes', {
+  bearerAuth: {
+    type: 'http',
+    scheme: 'bearer',
+    description: 'Sensor API key authentication',
+  },
+});
+
+// Register routes
+app.openapi(healthRoute, healthHandler as any);
+app.openapi(validationRoute, validationHandler as any);
+
+// Apply auth middleware for storage endpoint
+app.use('/caliper/v1p2/events', authMiddleware);
+app.openapi(storageRoute, storageHandler as any);
+
+// Root redirect to docs
+app.get('/', (c) => c.redirect('/docs'));
+
+// Get the OpenAPI document with our components
+app.doc('/openapi.json', (c) => ({
   openapi: '3.0.0',
   info: {
     title: 'Caliper Analytics API',
@@ -49,9 +57,18 @@ app.doc('/openapi.json', {
       description: 'API Server',
     },
   ],
-});
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        description: 'Sensor API key authentication',
+      },
+    },
+  },
+}));
 
-// Scalar UI for API documentation
+// Scalar UI for interactive documentation
 app.get(
   '/docs',
   apiReference({
@@ -59,9 +76,6 @@ app.get(
     theme: 'saturn',
   })
 );
-
-// Root redirect to docs
-app.get('/', (c) => c.redirect('/docs'));
 
 // Export handler for Lambda
 export { app };

@@ -21,10 +21,36 @@ A modern implementation of the IMS Caliper Analytics® specification v1.2 using 
 - `GET /docs` - Scalar API documentation UI
 - `GET /` - Redirects to `/docs`
 
-### 🔄 Phase 1: Event Validation Endpoint (Next)
-- [ ] `POST /caliper/v1p2/events/validate` endpoint
-- [ ] Full Caliper v1.2 schema validation
-- [ ] Detailed validation error messages
+### ✅ Phase 1: Event Validation Endpoint (Complete)
+- [x] `POST /caliper/v1p2/events/validate` endpoint
+- [x] Full Caliper v1.2 schema validation
+- [x] Detailed validation error messages
+
+**Endpoints Available**:
+- `POST /caliper/v1p2/events/validate` - Validate Caliper events without storing them
+
+### ✅ Phase 2: Event Storage Endpoint (Complete)
+- [x] `POST /caliper/v1p2/events` endpoint for storing events  
+- [x] DynamoDB storage with hot partition pattern
+- [x] Sensor API key authentication with Bearer token support
+- [x] Batch write support for multiple events (up to 25 per batch)
+- [x] 90-day TTL on stored events
+
+## 📍 API Endpoints
+
+### Available Endpoints
+- `GET /` - Redirects to API documentation
+- `GET /health` - Health check endpoint
+- `GET /docs` - Interactive API documentation (Scalar UI)
+- `GET /openapi.json` - OpenAPI specification
+- `POST /caliper/v1p2/events/validate` - Validate Caliper events without storing them
+- `POST /caliper/v1p2/events` - Store Caliper events (requires Bearer token authentication)
+
+### Authentication
+The storage endpoint requires authentication using a Bearer token:
+```
+Authorization: Bearer <api-key>
+```
 
 ## 🛠 Technology Stack
 
