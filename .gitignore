@@ -4,3 +4,6 @@ node_modules/
 
 # sst
 .sst
+
+# Authentication
+.auth-token

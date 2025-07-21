@@ -2,7 +2,7 @@
   "name": "caliper-superbuilders",
   "private": true,
   "scripts": {
-    "dev": "bun run scripts/dev.ts",
+    "dev": "bun scripts/dev.ts",
     "test": "bun test",
     "deploy": "sst deploy",
     "remove": "sst remove"

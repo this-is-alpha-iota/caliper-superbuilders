@@ -24,7 +24,7 @@ export async function authMiddleware(c: Context, next: Next) {
   const apiKey = authHeader.substring(7);
   
   // Test mode - allow test API keys in development
-  if (process.env.NODE_ENV !== 'production' && apiKey.startsWith('test-')) {
+  if (process.env.NODE_ENV !== 'production' && (apiKey.startsWith('test-') || apiKey.startsWith('sk_'))) {
     c.set('sensor', {
       apiKey,
       sensorId: 'test-sensor-001',
