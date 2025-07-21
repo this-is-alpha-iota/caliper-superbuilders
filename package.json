@@ -1,0 +1,24 @@
+{
+  "name": "caliper-superbuilders",
+  "private": true,
+  "scripts": {
+    "dev": "bun run scripts/dev.ts",
+    "test": "bun test",
+    "deploy": "sst deploy",
+    "remove": "sst remove"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.152",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.17.1",
+    "@hono/zod-openapi": "^1.0.2",
+    "@scalar/hono-api-reference": "^0.9.11",
+    "hono": "^4.8.5",
+    "zod": "^4.0.5"
+  }
+}
