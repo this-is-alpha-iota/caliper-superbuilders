@@ -14,12 +14,12 @@ export const threadSchema = entitySchema.extend({
 });
 
 // Message entity
-export const messageSchema = entitySchema.extend({
+export const messageSchema: z.ZodType<any> = entitySchema.extend({
   type: z.literal('Message'),
   creators: z.array(agentSchema).optional(),
   body: z.string().optional(),
   isPartOf: threadSchema.optional(),
-  // replyTo: z.lazy(() => messageSchema).optional(), // TODO: Add back circular ref
+  replyTo: z.lazy(() => messageSchema).optional(),
   attachments: z.array(entitySchema).optional(),
   datePublished: dateTimeSchema.optional(),
 }); 

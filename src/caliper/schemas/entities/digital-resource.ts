@@ -28,7 +28,7 @@ export const assignableDigitalResourceSchema = digitalResourceSchema.extend({
 // Assessment
 export const assessmentSchema = assignableDigitalResourceSchema.extend({
   type: z.literal('Assessment'),
-  // items: z.array(z.lazy(() => assessmentItemSchema)).optional(), // TODO: Add back circular ref
+  items: z.array(z.lazy(() => assessmentItemSchema)).optional(),
 });
 
 // AssessmentItem

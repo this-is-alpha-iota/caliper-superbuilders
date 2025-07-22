@@ -38,6 +38,14 @@ A modern implementation of the IMS Caliper Analytics® specification v1.2 using 
 - [x] Complete OpenAPI documentation
 - [x] All tests passing locally and on AWS
 
+### ✅ Phase 3: Query API for Recent Events (Complete)
+- [x] `GET /analytics/events` - Query recent events with filtering
+- [x] `GET /analytics/events/:id` - Get specific event by ID
+- [x] Filtering by actor, object, event type, and time range
+- [x] Pagination with offset/limit and Link headers (RFC 5988 compliant)
+- [x] Complete OpenAPI documentation for analytics endpoints
+- [x] All tests passing with proper authentication
+
 ## 📍 API Endpoints
 
 ### Available Endpoints
@@ -47,6 +55,8 @@ A modern implementation of the IMS Caliper Analytics® specification v1.2 using 
 - `GET /openapi.json` - OpenAPI specification
 - `POST /caliper/v1p2/events/validate` - Validate Caliper events without storing them
 - `POST /caliper/v1p2/events` - Store Caliper events (requires Bearer token authentication)
+- `GET /analytics/events` - Query stored events with filtering and pagination (requires authentication)
+- `GET /analytics/events/:id` - Get a specific event by ID (requires authentication)
 
 ### Authentication
 The storage endpoint requires authentication using a Bearer token:

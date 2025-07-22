@@ -40,7 +40,7 @@ export async function apiRequest<T = any>(
   const { skipAuth, apiKey, headers = {}, ...fetchOptions } = options;
   
   // Add auth header if not skipping
-  if (!skipAuth && (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE')) {
+  if (!skipAuth && options.method) {
     headers['Authorization'] = `Bearer ${apiKey || authToken || TEST_API_KEY}`;
   }
   
@@ -143,4 +143,68 @@ export function createAssessmentEvent(overrides: any = {}) {
     eventTime: new Date().toISOString(),
     ...overrides,
   };
+}
+
+/**
+ * Helper to seed events into the system for testing queries
+ */
+export async function seedEvents(events: any[]) {
+  const envelope = createEnvelope(events);
+  
+  const response = await apiRequest('/caliper/v1p2/events', {
+    method: 'POST',
+    body: JSON.stringify(envelope),
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to seed events: ${response.error}`);
+  }
+  
+  return response.data;
+}
+
+/**
+ * Helper to wait for a condition to be true
+ */
+export async function waitFor(
+  condition: () => boolean | Promise<boolean>,
+  timeout = 5000,
+  interval = 100
+): Promise<void> {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < timeout) {
+    if (await condition()) {
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, interval));
+  }
+  
+  throw new Error(`Timeout waiting for condition after ${timeout}ms`);
+}
+
+/**
+ * Helper to query events
+ */
+export async function queryEvents(params: Record<string, string | number> = {}) {
+  const queryString = new URLSearchParams(
+    Object.entries(params).reduce((acc, [key, value]) => {
+      acc[key] = String(value);
+      return acc;
+    }, {} as Record<string, string>)
+  ).toString();
+  const path = queryString ? `/analytics/events?${queryString}` : '/analytics/events';
+  
+  return apiRequest(path, {
+    method: 'GET',
+  });
+}
+
+/**
+ * Helper to get a single event
+ */
+export async function getEvent(id: string) {
+  return apiRequest(`/analytics/events/${id}`, {
+    method: 'GET',
+  });
 } 

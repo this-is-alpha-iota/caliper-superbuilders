@@ -39,9 +39,9 @@ export const softwareApplicationSchema = agentSchema.extend({
 });
 
 // Organization entity
-export const organizationSchema = agentSchema.extend({
+export const organizationSchema: z.ZodType<any> = agentSchema.extend({
   type: z.literal('Organization'),
-  // subOrganizationOf: z.lazy(() => organizationSchema).optional(), // TODO: Add back circular ref
+  subOrganizationOf: z.lazy(() => organizationSchema).optional(),
 });
 
 // Session entity

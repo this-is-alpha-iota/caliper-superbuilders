@@ -3,6 +3,7 @@ import { apiReference } from '@scalar/hono-api-reference';
 import { authMiddleware } from './lib/auth';
 import { healthRoute, validationRoute, storageRoute } from './routes/routes';
 import { healthHandler, validationHandler, storageHandler } from './routes/handlers';
+import { analyticsApp } from './routes/analytics';
 
 // Create the main OpenAPI Hono app with custom error handling
 const app = new OpenAPIHono({
@@ -39,6 +40,9 @@ app.openapi(validationRoute, validationHandler as any);
 // Apply auth middleware for storage endpoint
 app.use('/caliper/v1p2/events', authMiddleware);
 app.openapi(storageRoute, storageHandler as any);
+
+// Mount analytics routes
+app.route('/', analyticsApp);
 
 // Root redirect to docs
 app.get('/', (c) => c.redirect('/docs'));
