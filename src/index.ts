@@ -4,6 +4,7 @@ import { authMiddleware } from './lib/auth';
 import { healthRoute, validationRoute, storageRoute } from './routes/routes';
 import { healthHandler, validationHandler, storageHandler } from './routes/handlers';
 import { analyticsApp } from './routes/analytics';
+import { webhooksApp } from './routes/webhooks';
 
 // Create the main OpenAPI Hono app with custom error handling
 const app = new OpenAPIHono({
@@ -43,6 +44,9 @@ app.openapi(storageRoute, storageHandler as any);
 
 // Mount analytics routes
 app.route('/', analyticsApp);
+
+// Mount webhook routes
+app.route('/', webhooksApp);
 
 // Root redirect to docs
 app.get('/', (c) => c.redirect('/docs'));

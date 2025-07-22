@@ -56,4 +56,28 @@ describe('OpenAPI Documentation', () => {
     expect(response.ok).toBe(true);
     expect(response.data?.components?.schemas?.CaliperEnvelope).toBeDefined();
   });
+
+  test('webhook endpoints appear in OpenAPI spec', async () => {
+    const response = await apiRequest('/openapi.json');
+    
+    expect(response.ok).toBe(true);
+    
+    // Check webhook paths exist
+    expect(response.data?.paths?.['/webhooks']).toBeDefined();
+    expect(response.data?.paths?.['/webhooks/:id']).toBeDefined();
+    
+    // Check all CRUD operations
+    expect(response.data?.paths?.['/webhooks']?.post).toBeDefined();
+    expect(response.data?.paths?.['/webhooks']?.get).toBeDefined();
+    expect(response.data?.paths?.['/webhooks/:id']?.get).toBeDefined();
+    expect(response.data?.paths?.['/webhooks/:id']?.put).toBeDefined();
+    expect(response.data?.paths?.['/webhooks/:id']?.delete).toBeDefined();
+    
+    // Check post webhook has proper tags and security
+    expect(response.data?.paths?.['/webhooks']?.post).toMatchObject({
+      summary: expect.stringContaining('webhook'),
+      tags: ['Webhooks'],
+      security: [{ bearerAuth: [] }],
+    });
+  });
 }); 

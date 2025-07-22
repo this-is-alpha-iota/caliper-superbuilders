@@ -37,6 +37,23 @@ export default $config({
       ttl: "ttl", // Optional TTL field
     });
 
+    const webhooksTable = new sst.aws.Dynamo("CaliperWebhooks", {
+      fields: {
+        pk: "string", // Format: SENSOR#{sensorId}
+        sk: "string", // Format: WEBHOOK#{webhookId}
+        webhookId: "string",
+        createdAt: "string",
+      },
+      primaryIndex: { hashKey: "pk", rangeKey: "sk" },
+      globalIndexes: {
+        // Query by webhook ID across all sensors
+        ByWebhookId: {
+          hashKey: "webhookId",
+          projection: "all",
+        },
+      },
+    });
+
     // Create the Lambda function for our API
     const api = new sst.aws.Function("CaliperApi", {
       handler: "src/index.handler",
@@ -47,8 +64,9 @@ export default $config({
         NODE_ENV: $dev ? "development" : "production",
         SENSORS_TABLE: sensorsTable.name,
         EVENTS_TABLE: eventsTable.name,
+        WEBHOOKS_TABLE: webhooksTable.name,
       },
-      link: [sensorsTable, eventsTable],
+      link: [sensorsTable, eventsTable, webhooksTable],
     });
 
     // Output the API URL
@@ -56,6 +74,7 @@ export default $config({
       api: api.url,
       sensorsTable: sensorsTable.name,
       eventsTable: eventsTable.name,
+      webhooksTable: webhooksTable.name,
     };
   },
 });

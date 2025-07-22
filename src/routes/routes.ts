@@ -2,6 +2,7 @@ import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 import { envelopeSchema } from '../caliper/schemas/base';
 import { strictEnvelopeSchema } from '../caliper/schemas/envelope';
+import { envelopeSchemaForOpenAPI } from '../caliper/schemas/openapi-schemas';
 
 // Validation result schema
 const validationResultSchema = z.object({
@@ -32,7 +33,7 @@ export const validationRoute = createRoute({
     body: {
       content: {
         'application/json': {
-          schema: strictEnvelopeSchema.openapi('CaliperEnvelope'),
+          schema: envelopeSchemaForOpenAPI,
           example: {
             sensor: 'https://example.edu/sensors/1',
             sendTime: '2018-11-15T10:15:00.000Z',
@@ -92,7 +93,7 @@ export const storageRoute = createRoute({
     body: {
       content: {
         'application/json': {
-          schema: strictEnvelopeSchema.openapi('CaliperEnvelope'),
+          schema: envelopeSchemaForOpenAPI,
           example: {
             sensor: 'https://example.edu/sensors/1',
             sendTime: '2018-11-15T10:15:00.000Z',
