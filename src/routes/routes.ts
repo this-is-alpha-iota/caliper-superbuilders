@@ -87,7 +87,7 @@ export const storageRoute = createRoute({
   path: '/caliper/v1p2/events',
   tags: ['Caliper Events'],
   summary: 'Store Caliper events',
-  description: 'Stores Caliper events in DynamoDB. Requires sensor authentication.',
+  description: 'Stores Caliper events in DynamoDB for real-time access and archives them to S3 via Kinesis for long-term storage. Requires sensor authentication.',
   security: [{ bearerAuth: [] }],
   request: {
     body: {

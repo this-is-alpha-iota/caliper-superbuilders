@@ -6,10 +6,14 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, BatchWriteCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { randomUUID } from 'crypto';
 import { getPaginationParams, buildPaginationMeta, applyPaginationHeaders } from '../lib/pagination';
+import { KinesisClient, PutRecordsCommand } from '@aws-sdk/client-kinesis';
 
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
+
+// Initialize Kinesis client
+const kinesisClient = new KinesisClient({});
 
 // Helper to generate partition key
 function generatePartitionKey(): string {
@@ -78,16 +82,7 @@ export async function storageHandler(c: Context) {
 
     const envelope = result.data;
     
-    // In test mode, skip actual DynamoDB writes
-    if (process.env.NODE_ENV !== 'production') {
-      return c.json({
-        success: true,
-        eventsStored: envelope.data.length,
-        message: `${envelope.data.length} events stored successfully`,
-      });
-    }
-    
-    // Production mode - store in DynamoDB
+    // Store in DynamoDB
     const timestamp = Date.now();
     const ttl = Math.floor(timestamp / 1000) + (90 * 24 * 60 * 60);
     
@@ -129,6 +124,31 @@ export async function storageHandler(c: Context) {
       }));
     }
 
+    // Also send to Kinesis stream for archival
+    if (process.env.EVENT_STREAM_NAME) {
+      try {
+        const kinesisRecords = items.map(item => ({
+          Data: Buffer.from(JSON.stringify({
+            envelope,
+            storedAt: item.PutRequest.Item.storedAt,
+          })),
+          PartitionKey: sensor.sensorId,
+        }));
+
+        // Kinesis has a limit of 500 records per request
+        for (let i = 0; i < kinesisRecords.length; i += 500) {
+          const batch = kinesisRecords.slice(i, i + 500);
+          await kinesisClient.send(new PutRecordsCommand({
+            Records: batch,
+            StreamName: process.env.EVENT_STREAM_NAME,
+          }));
+        }
+      } catch (kinesisError) {
+        // Log error but don't fail the request - DynamoDB write was successful
+        console.error('Failed to write to Kinesis:', kinesisError);
+      }
+    }
+
     return c.json({
       success: true,
       eventsStored: envelope.data.length,
@@ -161,43 +181,7 @@ export async function queryEventsHandler(c: Context) {
       endTime,
     } = query;
     
-    // In development mode, return mock data
-    if (process.env.NODE_ENV !== 'production') {
-      // Create mock events
-      const mockEvents = [];
-      const totalCount = 5; // Simulate having 5 total events
-      
-      // Generate mock events based on offset and limit
-      for (let i = paginationParams.offset; i < Math.min(paginationParams.offset + paginationParams.limit, totalCount); i++) {
-        mockEvents.push({
-          id: `urn:uuid:test-${i + 1}`,
-          type: eventType || 'ViewEvent',
-          actor: {
-            id: actorId || `https://example.edu/users/${i + 1}`,
-            type: 'Person',
-          },
-          action: 'Viewed',
-          object: {
-            id: objectId || `https://example.edu/page/${i + 1}`,
-            type: 'Page',
-            name: `Test Page ${i + 1}`,
-          },
-          eventTime: startTime || '2024-01-01T00:00:00.000Z',
-          storedAt: '2024-01-01T00:00:05.000Z',
-          sensor: sensor.sensorId,
-        });
-      }
-      
-      // Build pagination metadata
-      const meta = buildPaginationMeta(paginationParams, totalCount);
-      
-      // Apply pagination headers
-      applyPaginationHeaders(c, meta, '/analytics/events');
-      
-      return c.json({ events: mockEvents });
-    }
-    
-    // Production mode - query DynamoDB
+    // Query DynamoDB
     // Use the BySensor GSI to query events for this sensor
     const queryParams: any = {
       TableName: process.env.EVENTS_TABLE,
@@ -316,32 +300,7 @@ export async function getEventHandler(c: Context) {
     const sensor = c.get('sensor') as SensorData;
     const eventId = c.req.param('id');
     
-    // In development mode, return mock data
-    if (process.env.NODE_ENV !== 'production') {
-      if (!eventId.startsWith('urn:uuid:')) {
-        return c.json({ error: 'Event not found' }, 404);
-      }
-      
-      return c.json({
-        id: eventId,
-        type: 'ViewEvent',
-        actor: {
-          id: 'https://example.edu/users/123',
-          type: 'Person',
-        },
-        action: 'Viewed',
-        object: {
-          id: 'https://example.edu/page/1',
-          type: 'Page',
-          name: 'Test Page',
-        },
-        eventTime: '2024-01-01T00:00:00.000Z',
-        storedAt: '2024-01-01T00:00:05.000Z',
-        sensor: sensor.sensorId,
-      });
-    }
-    
-    // Production mode - query for the specific event
+    // Query for the specific event
     // Since we need to find by event ID, we'll use a scan with filters
     // This is not optimal, but works for now. In a real system, you might:
     // 1. Store event ID as part of the key structure

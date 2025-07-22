@@ -45,12 +45,10 @@ export async function createWebhookHandler(c: Context) {
     };
     
     // Store in DynamoDB
-    if (process.env.NODE_ENV === 'production') {
-      await docClient.send(new PutCommand({
-        TableName: process.env.WEBHOOKS_TABLE!,
-        Item: webhook,
-      }));
-    }
+    await docClient.send(new PutCommand({
+      TableName: process.env.WEBHOOKS_TABLE!,
+      Item: webhook,
+    }));
     
     // Return webhook without pk/sk
     const response = {
@@ -81,14 +79,6 @@ export async function createWebhookHandler(c: Context) {
 export async function listWebhooksHandler(c: Context) {
   try {
     const sensor = c.get('sensor') as SensorData;
-    
-    if (process.env.NODE_ENV !== 'production') {
-      // Return mock data in development
-      return c.json({
-        webhooks: [],
-        count: 0,
-      });
-    }
     
     // Query webhooks for this sensor
     const result = await docClient.send(new QueryCommand({
@@ -132,11 +122,6 @@ export async function getWebhookHandler(c: Context) {
     const sensor = c.get('sensor') as SensorData;
     const webhookId = c.req.param('id');
     
-    if (process.env.NODE_ENV !== 'production') {
-      // Return 404 in development
-      return c.json({ error: 'Webhook not found' }, 404);
-    }
-    
     // Get webhook from DynamoDB
     const result = await docClient.send(new GetCommand({
       TableName: process.env.WEBHOOKS_TABLE!,
@@ -179,8 +164,6 @@ export async function updateWebhookHandler(c: Context) {
     const sensor = c.get('sensor') as SensorData;
     const webhookId = c.req.param('id');
     const body = await c.req.json();
-    
-    if (process.env.NODE_ENV === 'production') {
       // Check if webhook exists first
       const existingResult = await docClient.send(new GetCommand({
         TableName: process.env.WEBHOOKS_TABLE!,
@@ -263,22 +246,6 @@ export async function updateWebhookHandler(c: Context) {
       };
       
       return c.json(webhook);
-    } else {
-      // In development mode, return a mock response
-      return c.json({
-        id: webhookId,
-        sensorId: sensor.sensorId,
-        name: body.name || 'Updated Webhook',
-        targetUrl: body.targetUrl || 'https://example.com/updated',
-        description: body.description,
-        filters: body.filters,
-        active: body.active !== undefined ? body.active : true,
-        headers: body.headers,
-        secret: 'mock-secret',
-        createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: new Date().toISOString(),
-      });
-    }
   } catch (error) {
     console.error('Update webhook error:', error);
     return c.json({
@@ -293,8 +260,6 @@ export async function deleteWebhookHandler(c: Context) {
   try {
     const sensor = c.get('sensor') as SensorData;
     const webhookId = c.req.param('id');
-    
-    if (process.env.NODE_ENV === 'production') {
       // Check if webhook exists first
       const existingResult = await docClient.send(new GetCommand({
         TableName: process.env.WEBHOOKS_TABLE!,
@@ -316,7 +281,6 @@ export async function deleteWebhookHandler(c: Context) {
           sk: `WEBHOOK#${webhookId}`,
         },
       }));
-    }
     
     return c.body(null, 204);
   } catch (error) {

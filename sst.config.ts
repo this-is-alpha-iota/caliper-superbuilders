@@ -54,6 +54,14 @@ export default $config({
       },
     });
 
+    // S3 bucket for long-term event storage
+    const eventsBucket = new sst.aws.Bucket("CaliperEventArchive", {
+      public: false,
+    });
+
+    // Kinesis Data Stream for events
+    const eventStream = new sst.aws.KinesisStream("CaliperEventStream");
+
     // Create the Lambda function for our API
     const api = new sst.aws.Function("CaliperApi", {
       handler: "src/index.handler",
@@ -65,8 +73,18 @@ export default $config({
         SENSORS_TABLE: sensorsTable.name,
         EVENTS_TABLE: eventsTable.name,
         WEBHOOKS_TABLE: webhooksTable.name,
+        EVENT_STREAM_NAME: eventStream.name,
       },
-      link: [sensorsTable, eventsTable, webhooksTable],
+      link: [sensorsTable, eventsTable, webhooksTable, eventStream],
+    });
+
+    // Lambda function to process Kinesis stream and write to S3
+    const streamProcessor = eventStream.subscribe({
+      handler: "src/lib/stream-to-s3.handler",
+      link: [eventsBucket],
+      environment: {
+        BUCKET_NAME: eventsBucket.name,
+      },
     });
 
     // Output the API URL
@@ -75,6 +93,8 @@ export default $config({
       sensorsTable: sensorsTable.name,
       eventsTable: eventsTable.name,
       webhooksTable: webhooksTable.name,
+      eventStream: eventStream.name,
+      eventsBucket: eventsBucket.name,
     };
   },
 });

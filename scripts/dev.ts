@@ -1,10 +1,12 @@
 #!/usr/bin/env bun
 
-// Set environment for development
+// Set environment for local development
 process.env.NODE_ENV = 'development';
-process.env.SENSORS_TABLE = 'local-sensors';
-process.env.EVENTS_TABLE = 'local-events';
-process.env.WEBHOOKS_TABLE = 'local-webhooks';
+// These will be overridden by SST when running with 'sst dev'
+process.env.SENSORS_TABLE = process.env.SENSORS_TABLE || 'CaliperSensors';
+process.env.EVENTS_TABLE = process.env.EVENTS_TABLE || 'CaliperEvents';
+process.env.WEBHOOKS_TABLE = process.env.WEBHOOKS_TABLE || 'CaliperWebhooks';
+process.env.EVENT_STREAM_NAME = process.env.EVENT_STREAM_NAME || 'CaliperEventStream';
 
 import { serve } from '@hono/node-server';
 import { app } from '../src/index';
