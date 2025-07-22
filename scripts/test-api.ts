@@ -7,16 +7,20 @@
 // Default to local unless explicitly set to production
 const API_URL = process.env.API_URL || 'http://localhost:3000';
 
-// Try to load API key from .auth-token file or use default
-let API_KEY = process.env.API_KEY || 'test-key';
+// Try to load access token from .auth-token file
+let API_KEY = process.env.API_KEY || '';
 try {
   const tokenFile = Bun.file('.auth-token');
   if (tokenFile.size > 0) {
     API_KEY = (await tokenFile.text()).trim();
-    console.log('📌 Using API key from .auth-token file\n');
+    console.log('📌 Using access token from .auth-token file\n');
+  } else {
+    console.error('❌ No auth token found. Run: bun auth-helper.ts login\n');
+    process.exit(1);
   }
 } catch {
-  // File doesn't exist or can't be read
+  console.error('❌ No auth token found. Run: bun auth-helper.ts login\n');
+  process.exit(1);
 }
 
 interface TestResult {

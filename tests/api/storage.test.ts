@@ -29,7 +29,7 @@ describe('Event Storage', () => {
     
     expect(response.ok).toBe(false);
     expect(response.status).toBe(401);
-    expect(response.error).toContain('Invalid or inactive API key');
+    expect(response.error).toContain('Token is expired or invalid');
   });
 
   test('stores valid event with authentication', async () => {

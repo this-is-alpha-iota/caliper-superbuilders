@@ -78,7 +78,7 @@ export async function storageHandler(c: Context) {
     const envelope = result.data;
     
     // In test mode, skip actual DynamoDB writes
-    if (process.env.NODE_ENV !== 'production' && (sensor.apiKey.startsWith('test-') || sensor.apiKey.startsWith('sk_'))) {
+    if (process.env.NODE_ENV !== 'production') {
       return c.json({
         success: true,
         eventsStored: envelope.data.length,
