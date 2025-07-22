@@ -10,11 +10,23 @@ declare module "sst" {
       "type": "sst.aws.Function"
       "url": string
     }
+    "CaliperEventArchive": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
+    "CaliperEventStream": {
+      "name": string
+      "type": "sst.aws.KinesisStream"
+    }
     "CaliperEvents": {
       "name": string
       "type": "sst.aws.Dynamo"
     }
     "CaliperSensors": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "CaliperWebhooks": {
       "name": string
       "type": "sst.aws.Dynamo"
     }

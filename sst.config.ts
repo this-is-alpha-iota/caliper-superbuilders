@@ -42,7 +42,6 @@ export default $config({
         pk: "string", // Format: SENSOR#{sensorId}
         sk: "string", // Format: WEBHOOK#{webhookId}
         webhookId: "string",
-        createdAt: "string",
       },
       primaryIndex: { hashKey: "pk", rangeKey: "sk" },
       globalIndexes: {

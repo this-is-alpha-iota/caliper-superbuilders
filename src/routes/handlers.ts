@@ -7,6 +7,7 @@ import { DynamoDBDocumentClient, BatchWriteCommand, QueryCommand, ScanCommand } 
 import { randomUUID } from 'crypto';
 import { getPaginationParams, buildPaginationMeta, applyPaginationHeaders } from '../lib/pagination';
 import { KinesisClient, PutRecordsCommand } from '@aws-sdk/client-kinesis';
+import { processWebhooksForEvents } from '../lib/webhook-processor';
 
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
@@ -148,6 +149,11 @@ export async function storageHandler(c: Context) {
         console.error('Failed to write to Kinesis:', kinesisError);
       }
     }
+
+    // Process webhooks asynchronously (don't wait for completion)
+    processWebhooksForEvents(sensor.sensorId, envelope).catch(error => {
+      console.error('Webhook processing error:', error);
+    });
 
     return c.json({
       success: true,
