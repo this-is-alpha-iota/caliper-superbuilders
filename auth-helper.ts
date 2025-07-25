@@ -5,8 +5,8 @@ import { writeFileSync } from "fs";
 
 // Your deployed Cognito configuration
 const COGNITO_CONFIG = {
-  userPoolId: "us-east-1_BvmcFzsVf",
-  clientId: "4hobk8m7cd4o729t9d0mf20jhg",
+  userPoolId: "us-east-1_OqefFMwlP",
+  clientId: "1ch57b9kaffltl95e2oatjghml",
   region: "us-east-1"
 };
 
